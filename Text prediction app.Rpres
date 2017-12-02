@@ -38,7 +38,7 @@ df <- data.frame(Line_counts = line_counts,Character_counts = char_counts)
 rownames(df) <- c("en_US.blogs.txt","en_US.news.txt","en_US.twitter.txt")
 df
 ```  
-* <u>Training:</u> Approximately 10% of souce data is sampled using rbinom with probability 0.1.
+* <u>Training:</u> Approximately 10% of souce data is sampled using rbinom function with probability 0.1.
 ```{r, echo=FALSE}
 path_source <- "C:/Users/Sandeep/Documents/Coursera/Data science capstone/final/Sample/"
 myCorpus <- VCorpus(DirSource(path_source))

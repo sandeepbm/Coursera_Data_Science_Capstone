@@ -27,7 +27,7 @@ en_US.blogs.txt        899288        208361438
 en_US.news.txt          77259         15683765
 en_US.twitter.txt     2360148        162384825
 ```
-* <u>Training:</u> Approximately 10% of souce data is sampled using rbinom with probability 0.1.
+* <u>Training:</u> Approximately 10% of souce data is sampled using rbinom function with probability 0.1.
 
 ```
                   Line_counts Character_counts

@@ -23,13 +23,15 @@ shinyUI(fluidPage(
       tabsetPanel(selected="Prediction",
       tabPanel("About",
       br(),
-      tags$p("This app predits next word for a given N-gram/text phrase."),
+      tags$p("This app predits next word for a given N-gram/text phrase in the 'Prediction' tab."),
       tags$ul(
-      tags$li("Input N-gram/text phrase is accepted from user through a text box on left hand side panel."),
-      tags$li("Next word, as determined by prediction algorithm, is displayed top of main panel in an output text box."),
-      tags$li("Prediction algorithm determines next word using maximum likelihood probability as determined from an N-gram model trained on data sampled from a text Corpus."),
-      tags$li("N-gram plot is displayed on screen that compares probabilty of top words, upto maximum of 5 words, that have the maximum likelihood estimate. When smoothing is applied, plot for back off model will also be displayed.")
-      )),
+      tags$li(tags$u("Input:"),"A text box on left hand side panel accepts an N-gram/text phrase as input."),
+      tags$li(tags$u("Output:"),"The prediction algorithm determines next word for the given input and displays the same in a text box at the top of the main panel."),
+      tags$li(tags$u("Algorithm:"),"A Katz back off n-gram model, that is trained on data sampled from a text Corpus, is used to determine conditional probabilty of possible words and maximum likelihood estimation is done to arrive at the output."),
+      tags$li(tags$u("Visualization:"),"N-gram plots are displayed on main panel to compare probabilty of top words, upto maximum of 5 words, that have the maximum likelihood estimate. When smoothing is applied, plot for back off model is also displayed.")),
+      tags$p(tags$b("Github link:"),
+      tags$u(tags$a(href="https://github.com/sandeepbm/Coursera_Data_Science_Capstone","https://github.com/sandeepbm/Coursera_Data_Science_Capstone")))
+      ),
       tabPanel("Prediction",
       tags$u(h4("Prediction:")),
       verbatimTextOutput("prediction"),
