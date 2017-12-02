@@ -21,8 +21,20 @@ About the data
 
 * <u>Source:</u> Data is derived from a corpus of news, blogs and twitter feeds.  
 
+```
+                  Line_counts Character_counts
+en_US.blogs.txt        899288        208361438
+en_US.news.txt          77259         15683765
+en_US.twitter.txt     2360148        162384825
+```
 * <u>Training:</u> Approximately 10% of souce data is sampled using rbinom with probability 0.1.
 
+```
+                  Line_counts Character_counts
+en_US.blogs.txt         89234         20668794
+en_US.news.txt           7706          1553704
+en_US.twitter.txt      236386         16283739
+```
 Preprocessing the data
 ========================================================
 
