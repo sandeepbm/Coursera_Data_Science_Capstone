@@ -1,0 +1,222 @@
+---
+title: "Corpora data analysis report"
+author: "Sandeep"
+date: "October 29, 2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Executive summary
+
+The purpose of this document is to outline data analysis of the corpora given as part of the data science capstone and to present the goals for creating the eventual app and prediction algorithm. The motivation for this project is to:  
+
+1. Download and successfully load the data.  
+2. Create a basic report of summary statistics about the data sets.  
+3. Report any interesting findings.  
+4. Get feedback on plans for creating a prediction algorithm and Shiny app. 
+
+## Task 0: Understanding the problem
+
+In the data science capstone, we will be applying data science in the area of natural language processing.  
+
+We have the capstone dataset available to download from the following link:  
+https://d396qusza40orc.cloudfront.net/dsscapstone/dataset/Coursera-SwiftKey.zip  
+
+After downloading the zipped file and extracting its contents, we find 3 folders - one for each of the locales en_US, de_DE and ru_RU. Within each of the folders we find 3 text files named as LOCALE.blogs.txt, LOCALE.news.txt and LOCALE.twitter.txt.  
+
+In order to perform our tasks we will use text mining tools like the "NLP" & "tm" packages that are provided in CRAN for use in R applications.
+
+## Task 1: Getting and cleaning the data
+
+We notice from file properties that the data is relatively large and is not suitable for loading into memory. Instead it would be more appropriate to explore the data by reading few lines at a time. Below shows read of top 5 lines from the english twitter file:  
+
+```{r}
+con <- file("C:/Users/Sandeep/Documents/Coursera/Data science capstone/final/en_US/en_US.twitter.txt","r")
+readLines(con,5,skipNul=TRUE,warn=FALSE)
+```
+
+Next, we will write functions to process file counts on following type of tokens in the text:  
+
+1. Lines  
+2. Words  
+3. Punctuation  
+4. Digits  
+5. Spaces  
+6. Upper case  
+7. Lower case  
+
+```{r}
+# Below code has 8 functions
+process_file <- function(path,file,FUN){
+      con <- file(paste(path,file,sep=""),"r")
+      count <- 0
+      repeat{
+            rec <- readLines(con,1,skipNul=TRUE,warn=FALSE)
+            if (length(rec)==0){
+                  break
+            }
+            count <- FUN(count,rec)
+      }
+      close(con)
+      count
+}
+line_count <- function(x,s){
+      x+1
+}
+word_count <- function(x,s){
+      x+length(strsplit(s," ")[[1]])
+}
+punct_count <- function(x,s){
+      x+sum(grepl("[[:punct:]]",strsplit(s," ")[[1]]))
+}
+digit_count <- function(x,s){
+      x+sum(grepl("[[:digit:]]",strsplit(s," ")[[1]]))
+}
+space_count <- function(x,s){
+      x+sum(grepl("[[:space:]]",strsplit(s," ")[[1]]))
+}
+upper_count <- function(x,s){
+      x+sum(grepl("[[:upper:]]",strsplit(s," ")[[1]]))
+}
+lower_count <- function(x,s){
+      x+sum(grepl("[[:lower:]]",strsplit(s," ")[[1]]))
+}
+```
+
+Next, we will do basic summaries of the files using the functions created above and plot a barchart to compare the results.
+
+```{r}
+pathr <- "C:/Users/Sandeep/Documents/Coursera/Data science capstone/final/en_US/"
+full_file_summary <- data.frame(
+      Type=c("News","Blogs","Twitter"),
+      Lines=c(process_file(pathr,"en_US.news.txt",line_count),
+              process_file(pathr,"en_US.blogs.txt",line_count),
+              process_file(pathr,"en_US.twitter.txt",line_count)),
+      Words=c(process_file(pathr,"en_US.news.txt",word_count),
+              process_file(pathr,"en_US.blogs.txt",word_count),
+              process_file(pathr,"en_US.twitter.txt",word_count))
+)
+full_matrix_summary <- full_file_summary[2:3]
+rownames(full_matrix_summary) <- full_file_summary[,1]
+full_matrix_summary <- full_matrix_summary/1000000
+barplot(t(full_matrix_summary),horiz=TRUE,legend=TRUE,besid=TRUE,xlim=c(0,40))
+```
+
+Next, we will perform random sampling of the data in order to reduce the data that will be used later for bulding the prediction model. We will use rbinom function to randomly choose samples and try to get approximately 10,000 samples from each of the file through the random sampling. In order to achieve this, we shall assign a probability value of 10,000 divided by file line count.
+
+```{r}
+pathw <- "C:/Users/Sandeep/Documents/Coursera/Data science capstone/final/Sample/"
+
+# Create a function to write sampled file
+sample_file <- function(pathr,pathw,file,vsample){
+      conr <- file(paste(pathr,file,sep=""),"r")
+      conw <- file(paste(pathw,file,sep=""),"w")
+      counter <- 0
+      repeat{
+            rec <- readLines(conr,1,skipNul=TRUE,warn=FALSE)
+            if (length(rec)==0){
+                  break
+            }
+            counter <- counter+1
+            if (vsample[counter]==1){
+                  writeLines(rec,conw)
+            }
+      }
+      close(conr)
+      close(conw)
+}
+
+# Get line counts
+newsLC <- full_matrix_summary["News","Lines"]*1000000
+blogsLC <- full_matrix_summary["Blogs","Lines"]*1000000
+twitterLC <- full_matrix_summary["Twitter","Lines"]*1000000
+
+# Perform sampling
+set.seed(1234)
+vsample <- rbinom(n=newsLC,size=1,prob=10000/newsLC)
+sample_file(pathr,pathw,"en_US.news.txt",vsample)
+vsample <- rbinom(n=blogsLC,size=1,prob=10000/blogsLC)
+sample_file(pathr,pathw,"en_US.blogs.txt",vsample)
+vsample <- rbinom(n=twitterLC,size=1,prob=10000/twitterLC)
+sample_file(pathr,pathw,"en_US.twitter.txt",vsample)
+```
+
+Next, we will do basic summaries of the sample files using the functions created above and plot a barchart to compare the results.
+
+```{r}
+sample_file_summary <- data.frame(
+      Type=c("News","Blogs","Twitter"),
+      Lines=c(process_file(pathw,"en_US.news.txt",line_count),
+              process_file(pathw,"en_US.blogs.txt",line_count),
+              process_file(pathw,"en_US.twitter.txt",line_count)),
+      Words=c(process_file(pathw,"en_US.news.txt",word_count),
+              process_file(pathw,"en_US.blogs.txt",word_count),
+              process_file(pathw,"en_US.twitter.txt",word_count)),
+      Punct=c(process_file(pathw,"en_US.news.txt",punct_count),
+              process_file(pathw,"en_US.blogs.txt",punct_count),
+              process_file(pathw,"en_US.twitter.txt",punct_count)),
+      Digits=c(process_file(pathw,"en_US.news.txt",digit_count),
+              process_file(pathw,"en_US.blogs.txt",digit_count),
+              process_file(pathw,"en_US.twitter.txt",digit_count)),
+      Spaces=c(process_file(pathw,"en_US.news.txt",space_count),
+              process_file(pathw,"en_US.blogs.txt",space_count),
+              process_file(pathw,"en_US.twitter.txt",space_count)),
+      Upper=c(process_file(pathw,"en_US.news.txt",upper_count),
+              process_file(pathw,"en_US.blogs.txt",upper_count),
+              process_file(pathw,"en_US.twitter.txt",upper_count)),
+      Lower=c(process_file(pathw,"en_US.news.txt",lower_count),
+              process_file(pathw,"en_US.blogs.txt",lower_count),
+              process_file(pathw,"en_US.twitter.txt",lower_count))
+)
+sample_matrix_summary <- sample_file_summary[2:8]
+rownames(sample_matrix_summary) <- sample_file_summary[,1]
+sample_matrix_summary <- sample_matrix_summary/10000
+barplot(t(sample_matrix_summary),horiz=TRUE,legend=TRUE,besid=TRUE,xlim=c(0,60))
+```
+
+## Task 2: Exploratory data analysis
+
+Here we will explore the contents of the blogs sample file and perform following operations:  
+
+1. Determine all unigrams in the file.  
+2. Group the unigrams together and determine the frequencies of the unique words.  
+3. Sort the unigrams by descending order of frequency.  
+4. Add a cumulative frequency percentage to the dataset.  
+5. Get the highest occuring unigrams that represent 25% of words in the text file.  
+
+```{r}
+library("tm")
+myCorpus <- VCorpus(DirSource(pathw))
+unigrams <- strsplit(paste(myCorpus[[1]][[1]],sep="",collapse="")," ")[[1]]
+ugFrame <- data.frame(unigrams)
+ugFrame <- aggregate(ugFrame,by=list(ugFrame[,1]),length)
+ugFrame <- ugFrame[order(-ugFrame[,2]),]
+ugFrame <- cbind(ugFrame,cumsum(ugFrame[,2])*100/sum(ugFrame[,2]))
+colnames(ugFrame) <- c("Unigrams","Frequency","Cumulative Frequency Percentage")
+rownames(ugFrame) <- 1:nrow(ugFrame)
+top25 <- ugFrame[ugFrame[,3]<=25,]
+```
+
+Below table shows the top 25% words:
+```{r}
+top25
+```
+
+Below is a plot of the top 25% words:
+```{r}
+top25.m <- top25[2]
+rownames(top25.m) <- top25[,1]
+barplot(t(top25.m))
+```
+
+## Task 3: Modelling
+
+Below is the basic approach for building the prediction model:  
+
+1. Create unigram, bigram, trigram frequency tables
+2. In order to predict next word for a single word, look up the bigram frequency table to determine the frequently occuring 2nd word. If unable to determine, the unigram frequency table can be used a tie breaker.  
+3. In order to predict next word for a set of two words, look up the trigram frequency table to determine the frequently occuring 3rd word. If unable to determine, the bigram & unigram frequency tables can be used a tie breakers.  
+
