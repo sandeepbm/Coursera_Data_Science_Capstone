@@ -1,8 +1,10 @@
+
 Text prediction app
 ========================================================
 author: Sandeep
 date: 11/28/2017
-autosize: true
+width: 1440
+height: 900
 
 About the app
 ========================================================
@@ -18,7 +20,7 @@ About the data
 ========================================================
 
 * <u>Source:</u> Data is derived from a corpus of news, blogs and twitter feeds.  
-```{r, echo=FALSE}
+```{r, echo=FALSE,eval=FALSE}
 library("tm")
 path_source <- "C:/Users/Sandeep/Documents/Coursera/Data science capstone/final/en_US/"
 myCorpus <- VCorpus(DirSource(path_source))
@@ -37,7 +39,7 @@ rownames(df) <- c("en_US.blogs.txt","en_US.news.txt","en_US.twitter.txt")
 df
 ```  
 * <u>Training:</u> Approximately 10% of souce data is sampled using rbinom with probability 0.1.
-```{r, echo=FALSE}
+```{r, echo=FALSE,eval=FALSE}
 path_source <- "C:/Users/Sandeep/Documents/Coursera/Data science capstone/final/Sample/"
 myCorpus <- VCorpus(DirSource(path_source))
 line_counts <- c(
